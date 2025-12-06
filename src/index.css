@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Roboto:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Rubik:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,39 +6,40 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 220 20% 15%;
+    --background: 220 25% 10%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card: 220 20% 14%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover: 220 20% 14%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 220 90% 25%;
+    --primary: 261 75% 70%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 85% 45%;
+    --secondary: 199 89% 48%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 15% 40%;
+    --muted: 220 15% 25%;
+    --muted-foreground: 220 10% 70%;
 
-    --accent: 195 100% 45%;
+    --accent: 330 81% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 85%;
-    --input: 220 15% 92%;
-    --ring: 220 90% 25%;
+    --border: 220 20% 25%;
+    --input: 220 20% 20%;
+    --ring: 261 75% 70%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --auto-navy: 220 90% 25%;
-    --auto-red: 0 85% 45%;
-    --auto-blue: 195 100% 45%;
+    --neon-purple: 261 75% 70%;
+    --neon-cyan: 199 89% 48%;
+    --neon-magenta: 330 81% 60%;
+    --dark-bg: 220 25% 10%;
   }
 }
 
@@ -49,7 +50,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Roboto", sans-serif;
+    font-family: "Rubik", sans-serif;
   }
 
   h1,
@@ -59,32 +60,44 @@
   h5,
   h6 {
     font-family: "Montserrat", sans-serif;
-    font-weight: 700;
+    font-weight: 800;
   }
 }
 
 @layer utilities {
-  .shadow-auto {
+  .glow-purple {
     box-shadow:
-      0 4px 20px rgba(22, 48, 90, 0.15),
-      0 2px 10px rgba(22, 48, 90, 0.1);
+      0 0 20px rgba(155, 135, 245, 0.5),
+      0 0 40px rgba(155, 135, 245, 0.3);
   }
 
-  .shadow-red {
+  .glow-cyan {
     box-shadow:
-      0 4px 20px rgba(220, 38, 38, 0.15),
-      0 2px 10px rgba(220, 38, 38, 0.1);
+      0 0 20px rgba(14, 165, 233, 0.5),
+      0 0 40px rgba(14, 165, 233, 0.3);
   }
 
-  .gradient-navy {
-    background: linear-gradient(135deg, #16305a 0%, #1e3a5f 100%);
+  .glow-magenta {
+    box-shadow:
+      0 0 20px rgba(217, 70, 239, 0.5),
+      0 0 40px rgba(217, 70, 239, 0.3);
   }
 
-  .gradient-red {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  .text-glow-purple {
+    text-shadow:
+      0 0 10px rgba(155, 135, 245, 0.8),
+      0 0 20px rgba(155, 135, 245, 0.5);
   }
 
-  .gradient-hero {
-    background: linear-gradient(135deg, #16305a 0%, #1e3a5f 50%, #0ea5e9 100%);
+  .text-glow-cyan {
+    text-shadow:
+      0 0 10px rgba(14, 165, 233, 0.8),
+      0 0 20px rgba(14, 165, 233, 0.5);
+  }
+
+  .text-glow-magenta {
+    text-shadow:
+      0 0 10px rgba(217, 70, 239, 0.8),
+      0 0 20px rgba(217, 70, 239, 0.5);
   }
 }
