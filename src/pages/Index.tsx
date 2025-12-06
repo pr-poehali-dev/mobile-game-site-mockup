@@ -1,397 +1,587 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 
+interface Resources {
+  energy: number;
+  motivation: number;
+  experience: number;
+  reputation: number;
+  money: number;
+}
+
+interface Activity {
+  id: number;
+  name: string;
+  description: string;
+  energyCost: number;
+  motivationCost: number;
+  moneyCost: number;
+  experienceGain: number;
+  reputationGain: number;
+  moneyGain: number;
+  requiresTransport: boolean;
+  requiresSpecialSkills: boolean;
+  icon: string;
+}
+
 const Index = () => {
-  const [activeSection, setActiveSection] = useState('home');
+  const [gameStarted, setGameStarted] = useState(false);
+  const [day, setDay] = useState(1);
+  const [showStats, setShowStats] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [victory, setVictory] = useState(false);
+  
+  const [resources, setResources] = useState<Resources>({
+    energy: 100,
+    motivation: 100,
+    experience: 0,
+    reputation: 0,
+    money: 5000
+  });
 
-  const achievements = [
-    { id: 1, name: 'Первая помощь', description: 'Помоги 10 людям в игре', progress: 100, unlocked: true, icon: 'Heart' },
-    { id: 2, name: 'Эко-герой', description: 'Убери 50 единиц мусора', progress: 100, unlocked: true, icon: 'Leaf' },
-    { id: 3, name: 'Наставник', description: 'Обучи 5 новых волонтёров', progress: 60, unlocked: false, icon: 'GraduationCap' },
-    { id: 4, name: 'Друг животных', description: 'Спаси 20 животных', progress: 35, unlocked: false, icon: 'Dog' },
-    { id: 5, name: 'Легенда добра', description: 'Сделай 1000 добрых дел', progress: 42, unlocked: false, icon: 'Star' },
-  ];
-
-  const activities = [
-    { 
-      id: 1, 
-      name: 'Помощь пожилым', 
-      description: 'Помогай бабушкам и дедушкам с покупками', 
-      participants: 1250, 
-      impact: 'Высокий',
-      color: 'primary',
-      icon: 'Users',
-      image: 'https://cdn.poehali.dev/projects/ac25bf47-4a2e-4bb0-941e-5e9e02f49ddc/files/3fbb24d2-c888-4afb-9234-47a0e8e3aa9d.jpg'
+  const activities: Activity[] = [
+    {
+      id: 1,
+      name: 'Посадка деревьев',
+      description: 'Помощь в озеленении городского парка',
+      energyCost: 30,
+      motivationCost: 20,
+      moneyCost: 50,
+      experienceGain: 25,
+      reputationGain: 30,
+      moneyGain: 100,
+      requiresTransport: true,
+      requiresSpecialSkills: false,
+      icon: 'TreePine'
     },
-    { 
-      id: 2, 
-      name: 'Чистый город', 
-      description: 'Убирай мусор и делай город чище', 
-      participants: 980, 
-      impact: 'Средний',
-      color: 'secondary',
-      icon: 'Trash2',
-      image: 'https://cdn.poehali.dev/projects/ac25bf47-4a2e-4bb0-941e-5e9e02f49ddc/files/1b6183b4-524e-4e77-a858-5751e16829be.jpg'
+    {
+      id: 2,
+      name: 'Помощь в приюте для животных',
+      description: 'Уход за животными, кормление, уборка вольеров',
+      energyCost: 40,
+      motivationCost: 25,
+      moneyCost: 100,
+      experienceGain: 35,
+      reputationGain: 40,
+      moneyGain: 150,
+      requiresTransport: true,
+      requiresSpecialSkills: false,
+      icon: 'Dog'
     },
-    { 
-      id: 3, 
-      name: 'Приют для животных', 
-      description: 'Заботься о брошенных питомцах', 
-      participants: 742, 
-      impact: 'Высокий',
-      color: 'accent',
-      icon: 'Heart',
-      image: 'https://cdn.poehali.dev/projects/ac25bf47-4a2e-4bb0-941e-5e9e02f49ddc/files/bf16e7bc-fc36-4d0e-b6af-845e7d6654a1.jpg'
+    {
+      id: 3,
+      name: 'Помощь пожилым людям',
+      description: 'Покупка продуктов, помощь по хозяйству, общение',
+      energyCost: 20,
+      motivationCost: 15,
+      moneyCost: 80,
+      experienceGain: 30,
+      reputationGain: 50,
+      moneyGain: 120,
+      requiresTransport: false,
+      requiresSpecialSkills: false,
+      icon: 'Users'
     },
-  ];
-
-  const heroes = [
-    { rank: 1, username: 'ДобрыйСамаритянин', goodDeeds: 3420, avatar: '❤️' },
-    { rank: 2, username: 'ЭкоВоин', goodDeeds: 2890, avatar: '🌱' },
-    { rank: 3, username: 'ДругЖивотных', goodDeeds: 2560, avatar: '🐕' },
-    { rank: 4, username: 'ГородскойГерой', goodDeeds: 2180, avatar: '🏙️' },
-    { rank: 5, username: 'СветлыйПуть', goodDeeds: 1920, avatar: '⭐' },
-  ];
-
-  const scrollToSection = (sectionId: string) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    {
+      id: 4,
+      name: 'Работа в продовольственном банке',
+      description: 'Сортировка и упаковка продуктов для нуждающихся',
+      energyCost: 25,
+      motivationCost: 20,
+      moneyCost: 40,
+      experienceGain: 20,
+      reputationGain: 25,
+      moneyGain: 80,
+      requiresTransport: true,
+      requiresSpecialSkills: false,
+      icon: 'ShoppingBag'
+    },
+    {
+      id: 5,
+      name: 'Преподавание для детей',
+      description: 'Проведение занятий с детьми из малообеспеченных семей',
+      energyCost: 35,
+      motivationCost: 40,
+      moneyCost: 200,
+      experienceGain: 50,
+      reputationGain: 60,
+      moneyGain: 300,
+      requiresTransport: false,
+      requiresSpecialSkills: true,
+      icon: 'GraduationCap'
+    },
+    {
+      id: 6,
+      name: 'Уборка пляжа',
+      description: 'Экологическая акция по очистке береговой линии',
+      energyCost: 45,
+      motivationCost: 30,
+      moneyCost: 100,
+      experienceGain: 40,
+      reputationGain: 45,
+      moneyGain: 150,
+      requiresTransport: true,
+      requiresSpecialSkills: false,
+      icon: 'Waves'
+    },
+    {
+      id: 7,
+      name: 'Волонтёрство в больнице',
+      description: 'Помощь медицинскому персоналу, общение с пациентами',
+      energyCost: 30,
+      motivationCost: 35,
+      moneyCost: 150,
+      experienceGain: 45,
+      reputationGain: 55,
+      moneyGain: 250,
+      requiresTransport: true,
+      requiresSpecialSkills: true,
+      icon: 'Heart'
+    },
+    {
+      id: 8,
+      name: 'Организация благотворительного мероприятия',
+      description: 'Планирование и проведение мероприятия',
+      energyCost: 50,
+      motivationCost: 60,
+      moneyCost: 500,
+      experienceGain: 80,
+      reputationGain: 100,
+      moneyGain: 1000,
+      requiresTransport: false,
+      requiresSpecialSkills: true,
+      icon: 'PartyPopper'
     }
+  ];
+
+  const getVolunteerLevel = () => {
+    const exp = resources.experience;
+    if (exp < 50) return 'Новичок';
+    if (exp < 150) return 'Активист';
+    if (exp < 300) return 'Опытный волонтёр';
+    if (exp < 500) return 'Лидер';
+    return 'Мастер волонтёрства';
   };
 
+  const getAchievements = () => {
+    const achievements = [];
+    if (resources.reputation >= 100) achievements.push('⭐ Начинающий активист');
+    if (resources.reputation >= 300) achievements.push('⭐⭐ Опытный волонтёр');
+    if (resources.reputation >= 500) achievements.push('⭐⭐⭐ Лидер сообщества');
+    if (resources.experience >= 200) achievements.push('🏅 Мастер волонтёрства');
+    return achievements;
+  };
+
+  const canPerformActivity = (activity: Activity) => {
+    if (resources.energy < activity.energyCost) return { can: false, message: 'Недостаточно энергии!' };
+    if (resources.motivation < activity.motivationCost) return { can: false, message: 'Недостаточно мотивации!' };
+    if (resources.money < activity.moneyCost) return { can: false, message: 'Недостаточно денег!' };
+    return { can: true, message: '' };
+  };
+
+  const performActivity = (activity: Activity) => {
+    const check = canPerformActivity(activity);
+    if (!check.can) {
+      alert('❌ ' + check.message);
+      return;
+    }
+
+    setResources(prev => ({
+      energy: Math.max(0, prev.energy - activity.energyCost),
+      motivation: Math.max(0, prev.motivation - activity.motivationCost),
+      experience: prev.experience + activity.experienceGain,
+      reputation: prev.reputation + activity.reputationGain,
+      money: prev.money - activity.moneyCost + activity.moneyGain
+    }));
+
+    nextDay();
+  };
+
+  const rest = () => {
+    setResources(prev => ({
+      ...prev,
+      energy: Math.min(100, prev.energy + 30),
+      motivation: Math.min(100, prev.motivation + 20),
+      money: prev.money - 50
+    }));
+    nextDay();
+  };
+
+  const nextDay = () => {
+    setResources(prev => ({
+      ...prev,
+      energy: Math.min(100, prev.energy + 20),
+      motivation: Math.min(100, prev.motivation + 10),
+      money: prev.money - 200
+    }));
+    setDay(prev => prev + 1);
+  };
+
+  useEffect(() => {
+    if (resources.energy <= 0 || resources.motivation <= 0) {
+      setGameOver(true);
+    }
+    if (resources.money < -500) {
+      setGameOver(true);
+    }
+    if (day > 30) {
+      setVictory(true);
+      setGameOver(true);
+    }
+  }, [resources, day]);
+
+  const calculateFinalScore = () => {
+    return resources.experience * 2 + resources.reputation * 3 + Math.floor(resources.money / 10) + day * 10;
+  };
+
+  const startGame = () => {
+    setGameStarted(true);
+    setGameOver(false);
+    setVictory(false);
+    setDay(1);
+    setResources({
+      energy: 100,
+      motivation: 100,
+      experience: 0,
+      reputation: 0,
+      money: 5000
+    });
+  };
+
+  if (!gameStarted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center p-6">
+        <Card className="max-w-2xl w-full shadow-auto">
+          <CardHeader className="text-center">
+            <div className="text-6xl mb-4">🌍</div>
+            <CardTitle className="text-4xl mb-4">Путь Волонтёра</CardTitle>
+            <p className="text-muted-foreground text-lg">
+              Добро пожаловать в игру! Набирайте опыт и репутацию, помогая другим и развивая свои навыки волонтёра.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-muted p-4 rounded-lg">
+              <h3 className="font-bold mb-2">🎯 Цель игры:</h3>
+              <p className="text-sm text-muted-foreground">
+                Набрать как можно больше опыта и репутации за 30 дней, распределяя ресурсы мудро
+              </p>
+            </div>
+            
+            <div className="bg-muted p-4 rounded-lg">
+              <h3 className="font-bold mb-3">📊 Ваши ресурсы:</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">⚡</span>
+                  <span><strong>Энергия:</strong> Расходуется на активности</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">💪</span>
+                  <span><strong>Мотивация:</strong> Необходима для продолжения</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🌟</span>
+                  <span><strong>Опыт:</strong> Ваш главный показатель роста</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏆</span>
+                  <span><strong>Репутация:</strong> Признание в обществе</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">💰</span>
+                  <span><strong>Деньги:</strong> Нужны для участия в активностях</span>
+                </div>
+              </div>
+            </div>
+
+            <Button 
+              size="lg" 
+              className="w-full text-lg"
+              onClick={startGame}
+            >
+              <Icon name="Play" className="mr-2" size={24} />
+              Начать игру
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (gameOver) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center p-6">
+        <Card className="max-w-2xl w-full shadow-auto">
+          <CardHeader className="text-center">
+            <div className="text-6xl mb-4">{victory ? '🏆' : '💀'}</div>
+            <CardTitle className="text-4xl mb-4">
+              {victory ? 'Поздравляем!' : 'Игра окончена'}
+            </CardTitle>
+            <p className="text-muted-foreground text-lg">
+              {victory 
+                ? 'Вы прошли 30 дней волонтёрства!'
+                : resources.energy <= 0 || resources.motivation <= 0
+                  ? 'Вы полностью истощены и больше не можете продолжать.'
+                  : 'Вы влезли в большие долги и не можете продолжать.'
+              }
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-muted p-6 rounded-lg">
+              <h3 className="text-2xl font-bold mb-4 text-center">
+                Финальный счёт: {calculateFinalScore()}
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span>🏅 Уровень волонтёра:</span>
+                  <strong>{getVolunteerLevel()}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>📅 Всего дней:</span>
+                  <strong>{day - 1}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>🌟 Накопленный опыт:</span>
+                  <strong>{resources.experience}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>🏆 Репутация:</span>
+                  <strong>{resources.reputation}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>💰 Оставшиеся деньги:</span>
+                  <strong>{resources.money} ₽</strong>
+                </div>
+              </div>
+            </div>
+
+            {getAchievements().length > 0 && (
+              <div className="bg-muted p-4 rounded-lg">
+                <h3 className="font-bold mb-2">🎖️ Достижения:</h3>
+                <div className="space-y-1">
+                  {getAchievements().map((ach, idx) => (
+                    <div key={idx} className="text-sm">{ach}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-primary/10 p-4 rounded-lg text-center">
+              <p className="text-sm">
+                <strong>Ваш вклад в общество:</strong><br />
+                Вы помогли множеству людей, внесли вклад в экологию и получили бесценный опыт!
+              </p>
+            </div>
+
+            <Button 
+              size="lg" 
+              className="w-full text-lg"
+              onClick={startGame}
+            >
+              <Icon name="RotateCcw" className="mr-2" size={20} />
+              Играть снова
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-background p-6">
+      <div className="container mx-auto max-w-6xl">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
               <Icon name="Heart" className="text-primary" size={32} />
-              <span className="text-2xl font-bold text-primary">Добрые Дела</span>
-            </div>
-            <div className="hidden md:flex gap-6">
-              {['home', 'mission', 'activities', 'achievements', 'heroes', 'download'].map((section) => (
-                <button
-                  key={section}
-                  onClick={() => scrollToSection(section)}
-                  className={`text-sm font-medium transition-all hover:text-primary ${
-                    activeSection === section ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  {section === 'home' && 'Главная'}
-                  {section === 'mission' && 'О миссии'}
-                  {section === 'activities' && 'Как помогать'}
-                  {section === 'achievements' && 'Достижения'}
-                  {section === 'heroes' && 'Герои добра'}
-                  {section === 'download' && 'Скачать'}
-                </button>
-              ))}
-            </div>
-            <Button className="bg-primary text-primary-foreground shadow-warm hover:bg-primary/90">
-              Начать помогать
+              Путь Волонтёра
+            </h1>
+            <p className="text-muted-foreground">День {day} из 30</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowStats(!showStats)}>
+              <Icon name="BarChart3" className="mr-2" size={18} />
+              Статистика
+            </Button>
+            <Button onClick={nextDay}>
+              <Icon name="ArrowRight" className="mr-2" size={18} />
+              Следующий день
             </Button>
           </div>
         </div>
-      </nav>
 
-      <section id="home" className="pt-32 pb-20 px-6">
-        <div className="container mx-auto text-center">
-          <div className="inline-block mb-6">
-            <div className="text-7xl mb-4">🌟</div>
-          </div>
-          <h1 className="text-6xl md:text-8xl font-black mb-6 text-primary">
-            Добрые Дела
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Игра, которая меняет мир! Совершай добрые дела и вдохновляй других помогать
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center mb-12">
-            <Button size="lg" className="bg-primary text-primary-foreground shadow-warm hover:bg-primary/90 text-lg px-8">
-              <Icon name="Download" className="mr-2" size={20} />
-              Скачать игру
-            </Button>
-            <Button size="lg" variant="outline" className="border-secondary text-secondary hover:bg-secondary/10 text-lg px-8">
-              <Icon name="Play" className="mr-2" size={20} />
-              Посмотреть видео
-            </Button>
-          </div>
-          
-          <Card className="max-w-3xl mx-auto bg-gradient-warm text-white shadow-warm">
-            <CardContent className="p-8">
-              <div className="grid md:grid-cols-3 gap-6 text-center">
-                <div>
-                  <div className="text-4xl font-black mb-2">12,847</div>
-                  <div className="text-sm opacity-90">Активных волонтёров</div>
-                </div>
-                <div>
-                  <div className="text-4xl font-black mb-2">89,342</div>
-                  <div className="text-sm opacity-90">Добрых дел совершено</div>
-                </div>
-                <div>
-                  <div className="text-4xl font-black mb-2">156</div>
-                  <div className="text-sm opacity-90">Городов участвуют</div>
-                </div>
+        <div className="grid lg:grid-cols-3 gap-6 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <span className="text-xl">⚡</span> Энергия
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Progress value={resources.energy} className="mb-2" />
+              <p className="text-sm text-muted-foreground">{resources.energy}/100</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <span className="text-xl">💪</span> Мотивация
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Progress value={resources.motivation} className="mb-2" />
+              <p className="text-sm text-muted-foreground">{resources.motivation}/100</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <span className="text-xl">💰</span> Деньги
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{resources.money} ₽</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Опыт</p>
+                <p className="text-2xl font-bold">🌟 {resources.experience}</p>
+              </div>
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                {getVolunteerLevel()}
+              </Badge>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Репутация</p>
+                <p className="text-2xl font-bold">🏆 {resources.reputation}</p>
               </div>
             </CardContent>
           </Card>
         </div>
-      </section>
 
-      <section id="mission" className="py-20 px-6 bg-muted/30">
-        <div className="container mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center text-foreground">
-            Наша миссия
-          </h2>
-          <p className="text-xl text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Сделать волонтёрство весёлым, доступным и вдохновляющим
-          </p>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="bg-card border-primary/20 shadow-warm hover:scale-105 transition-transform">
-              <CardHeader>
-                <Icon name="Heart" className="text-primary mb-4" size={48} />
-                <CardTitle className="text-2xl">Помогай с радостью</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Превращай добрые дела в увлекательное приключение с наградами и достижениями
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border-secondary/20 shadow-kind hover:scale-105 transition-transform">
-              <CardHeader>
-                <Icon name="Users" className="text-secondary mb-4" size={48} />
-                <CardTitle className="text-2xl">Найди единомышленников</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Присоединяйся к сообществу добрых людей и меняйте мир вместе
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border-accent/20 shadow-soft hover:scale-105 transition-transform">
-              <CardHeader>
-                <Icon name="TrendingUp" className="text-accent mb-4" size={48} />
-                <CardTitle className="text-2xl">Расти и развивайся</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Прокачивай навыки, получай опыт и становись лучшей версией себя
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      <section id="activities" className="py-20 px-6">
-        <div className="container mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center text-foreground">
-            Как ты можешь помогать
-          </h2>
-          <p className="text-xl text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Выбирай активности по душе и начинай творить добро
-          </p>
-          <div className="grid md:grid-cols-3 gap-8">
-            {activities.map((activity) => (
-              <Card key={activity.id} className="bg-card border-border hover:scale-105 transition-all shadow-lg">
-                <CardHeader>
-                  <div className="w-full h-48 rounded-lg mb-4 overflow-hidden">
-                    <img 
-                      src={activity.image} 
-                      alt={activity.name}
-                      className="w-full h-full object-cover"
-                    />
+        {showStats && (
+          <Card className="mb-6 bg-muted">
+            <CardHeader>
+              <CardTitle>Статистика игрока</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">День игры</p>
+                  <p className="text-xl font-bold">{day}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Общий счёт</p>
+                  <p className="text-xl font-bold">{calculateFinalScore()}</p>
+                </div>
+              </div>
+              {getAchievements().length > 0 && (
+                <div>
+                  <p className="font-bold mb-2">🎯 Достижения:</p>
+                  <div className="space-y-1">
+                    {getAchievements().map((ach, idx) => (
+                      <div key={idx} className="text-sm">{ach}</div>
+                    ))}
                   </div>
-                  <CardTitle className="text-2xl">{activity.name}</CardTitle>
-                  <CardDescription className="text-base">{activity.description}</CardDescription>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-4">🌍 Выберите волонтёрскую активность</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {activities.map(activity => (
+              <Card key={activity.id} className="hover:shadow-auto transition-all">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name={activity.icon as any} size={24} className="text-primary" />
+                    {activity.name}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Участников</span>
-                      <Badge variant="outline" className="font-bold">{activity.participants}</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Влияние</span>
-                      <Badge className={`bg-${activity.color}`}>{activity.impact}</Badge>
-                    </div>
-                    <Button className="w-full mt-4" variant="outline">
-                      Начать помогать
-                    </Button>
+                  <p className="text-sm text-muted-foreground mb-4">{activity.description}</p>
+                  
+                  <div className="flex gap-2 text-xs mb-3 flex-wrap">
+                    <Badge variant="outline">⚡ {activity.energyCost}</Badge>
+                    <Badge variant="outline">💪 {activity.motivationCost}</Badge>
+                    <Badge variant="outline">💰 {activity.moneyCost} ₽</Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="achievements" className="py-20 px-6 bg-muted/30">
-        <div className="container mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center text-foreground">
-            Твои достижения
-          </h2>
-          <p className="text-xl text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Получай награды за каждое доброе дело
-          </p>
-          <div className="max-w-4xl mx-auto space-y-4">
-            {achievements.map((achievement) => (
-              <Card key={achievement.id} className={`bg-card ${achievement.unlocked ? 'border-primary shadow-warm' : 'border-border opacity-70'}`}>
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-lg ${achievement.unlocked ? 'bg-primary/10' : 'bg-muted/50'}`}>
-                      <Icon name={achievement.icon as any} className={achievement.unlocked ? 'text-primary' : 'text-muted-foreground'} size={32} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold">{achievement.name}</h3>
-                        {achievement.unlocked && (
-                          <Badge className="bg-primary">Получено!</Badge>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground mb-3">{achievement.description}</p>
-                      <div className="flex items-center gap-3">
-                        <Progress value={achievement.progress} className="h-2 flex-1" />
-                        <span className="text-sm font-medium">{achievement.progress}%</span>
-                      </div>
-                    </div>
+                  
+                  <div className="flex gap-2 text-xs mb-3 flex-wrap">
+                    <Badge variant="secondary">🌟 +{activity.experienceGain}</Badge>
+                    <Badge variant="secondary">🏆 +{activity.reputationGain}</Badge>
+                    <Badge variant="secondary">💰 +{activity.moneyGain} ₽</Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="heroes" className="py-20 px-6">
-        <div className="container mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center text-foreground">
-            Герои добра
-          </h2>
-          <p className="text-xl text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Рейтинг самых активных волонтёров
-          </p>
-          <Card className="max-w-2xl mx-auto bg-card border-border shadow-lg">
-            <CardContent className="p-6">
-              <div className="space-y-3">
-                {heroes.map((hero) => (
-                  <div
-                    key={hero.rank}
-                    className={`flex items-center gap-4 p-4 rounded-lg transition-all hover:scale-105 ${
-                      hero.rank === 1 ? 'bg-primary/10 shadow-warm' :
-                      hero.rank === 2 ? 'bg-secondary/10 shadow-kind' :
-                      hero.rank === 3 ? 'bg-accent/10 shadow-soft' :
-                      'bg-muted/30'
-                    }`}
+                  
+                  {(activity.requiresTransport || activity.requiresSpecialSkills) && (
+                    <div className="mb-3 text-xs space-y-1">
+                      {activity.requiresTransport && (
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Icon name="Car" size={14} />
+                          <span>Требуется транспорт</span>
+                        </div>
+                      )}
+                      {activity.requiresSpecialSkills && (
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Icon name="GraduationCap" size={14} />
+                          <span>Требуются специальные навыки</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  <Button 
+                    className="w-full"
+                    onClick={() => performActivity(activity)}
+                    disabled={!canPerformActivity(activity).can}
                   >
-                    <div className="text-3xl font-black w-12 text-center">
-                      {hero.rank === 1 && '🥇'}
-                      {hero.rank === 2 && '🥈'}
-                      {hero.rank === 3 && '🥉'}
-                      {hero.rank > 3 && hero.rank}
-                    </div>
-                    <div className="text-4xl">{hero.avatar}</div>
-                    <div className="flex-1">
-                      <div className="font-bold text-lg">{hero.username}</div>
-                      <div className="text-sm text-muted-foreground">Добрых дел: {hero.goodDeeds.toLocaleString()}</div>
-                    </div>
-                    <Icon name="ChevronRight" className="text-muted-foreground" size={24} />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <section id="download" className="py-20 px-6 bg-muted/30">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            Начни творить добро прямо сейчас
-          </h2>
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Скачай игру и присоединяйся к сообществу добрых людей
-          </p>
-          <div className="flex flex-wrap gap-6 justify-center">
-            <Card className="w-64 bg-card border-border hover:scale-105 transition-transform cursor-pointer shadow-warm">
-              <CardHeader>
-                <Icon name="Smartphone" className="text-primary mx-auto" size={64} />
-                <CardTitle className="text-2xl">iOS</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full bg-primary shadow-warm">
-                  <Icon name="Download" className="mr-2" size={20} />
-                  App Store
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="w-64 bg-card border-border hover:scale-105 transition-transform cursor-pointer shadow-kind">
-              <CardHeader>
-                <Icon name="Smartphone" className="text-secondary mx-auto" size={64} />
-                <CardTitle className="text-2xl">Android</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full bg-secondary shadow-kind">
-                  <Icon name="Download" className="mr-2" size={20} />
-                  Google Play
-                </Button>
-              </CardContent>
-            </Card>
+                    Выполнить
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
-      </section>
 
-      <section className="py-20 px-6">
-        <div className="container mx-auto">
-          <Card className="max-w-3xl mx-auto bg-gradient-warm text-white shadow-warm">
-            <CardContent className="p-12 text-center">
-              <Icon name="Sparkles" className="mx-auto mb-6" size={64} />
-              <h3 className="text-3xl font-bold mb-4">Присоединяйся к движению добра!</h3>
-              <p className="text-lg mb-8 opacity-90">
-                Каждое доброе дело делает мир лучше. Начни своё путешествие уже сегодня!
-              </p>
-              <div className="flex gap-4 justify-center">
-                <input
-                  type="email"
-                  placeholder="Твой email"
-                  className="flex-1 max-w-sm px-4 py-3 rounded-lg border-0 text-foreground focus:outline-none focus:ring-2 focus:ring-white"
-                />
-                <Button className="bg-white text-primary hover:bg-white/90 font-bold px-8">
-                  Подписаться
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <footer className="py-8 px-6 border-t border-border bg-card">
-        <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Icon name="Heart" className="text-primary" size={24} />
-              <span className="font-bold text-foreground">Добрые Дела</span>
-            </div>
-            <div className="flex gap-6">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Icon name="Mail" size={20} />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Icon name="MessageCircle" size={20} />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Icon name="Twitter" size={20} />
-              </a>
-            </div>
-            <p className="text-muted-foreground text-sm">© 2024 Добрые Дела. Делаем мир лучше вместе</p>
-          </div>
-        </div>
-      </footer>
+        <Card className="bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="Coffee" size={24} />
+              Отдых и восстановление
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Восстановите силы: +30 энергии, +20 мотивации (стоимость: 50 ₽)
+            </p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={rest}
+              disabled={resources.money < 50}
+            >
+              <Icon name="Coffee" className="mr-2" size={18} />
+              Отдохнуть
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
